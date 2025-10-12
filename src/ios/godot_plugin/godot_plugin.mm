@@ -26,7 +26,7 @@ void godot_plugin_init() {
 	Engine::get_singleton()->add_singleton(Engine::Singleton("Haptics", hapticsPlugin));
 
 	iapPlugin = memnew(GodotIAP);
-	Engine::get_singleton()->add_singleton(Engine::Singleton("GodotIAP", iapPlugin));
+	Engine::get_singleton()->add_singleton(Engine::Singleton("GodotBilling", iapPlugin));
 }
 
 void godot_plugin_deinit() {

@@ -11,13 +11,15 @@ const COINS_500 = "coins_500"
 const PREMIUM_UNLOCK = "premium_unlock"
 const MONTHLY_SUB = "premium_monthly"
 
+
 func _ready():
 	# Get the IAP singleton
-	if Engine.has_singleton("GodotIAP"):
-		iap = Engine.get_singleton("GodotIAP")
+	if Engine.has_singleton("GodotBilling"):
+		iap = Engine.get_singleton("GodotBilling")
 		_setup_iap()
 	else:
-		print("GodotIAP singleton not found - IAP disabled")
+		print("GodotBilling singleton not found - IAP disabled")
+
 
 func _setup_iap():
 	# Connect signals
@@ -34,9 +36,11 @@ func _setup_iap():
 	# Android: Connects to Google Play Billing (may take a moment)
 	iap.startConnection()
 
+
 # ============================================================================
 # Signal Handlers
 # ============================================================================
+
 
 func _on_billing_connected(result):
 	if result.status == 0:
@@ -57,6 +61,7 @@ func _on_billing_connected(result):
 	else:
 		print("Billing connection failed: ", result)
 
+
 func _on_sku_details_completed(result):
 	if result.status == 0:
 		print("Products loaded:")
@@ -66,6 +71,7 @@ func _on_sku_details_completed(result):
 			_store_product_info(product)
 	else:
 		print("Failed to load products: ", result)
+
 
 func _on_purchase_updated(result):
 	if result.status == 0:
@@ -77,6 +83,7 @@ func _on_purchase_updated(result):
 	else:
 		print("Purchase failed: ", result)
 
+
 func _on_purchases_restored(result):
 	if result.status == 0:
 		print("Purchases restored: ", result.purchases.size(), " items")
@@ -85,11 +92,13 @@ func _on_purchases_restored(result):
 	else:
 		print("Restore failed: ", result)
 
+
 func _on_purchase_acknowledged(result):
 	if result.status == 0:
 		print("Purchase acknowledged: ", result.purchase_token)
 	else:
 		print("Failed to acknowledge: ", result)
+
 
 func _on_purchase_consumed(result):
 	if result.status == 0:
@@ -97,12 +106,15 @@ func _on_purchase_consumed(result):
 	else:
 		print("Failed to consume: ", result)
 
+
 func _on_billing_error(error):
 	print("Billing error: ", error)
+
 
 # ============================================================================
 # Purchase Handling
 # ============================================================================
+
 
 func _handle_purchase(purchase):
 	print("Handling purchase: ", purchase.sku)
@@ -128,9 +140,11 @@ func _handle_purchase(purchase):
 			# Subscription - acknowledge
 			iap.acknowledgePurchase(purchase.purchase_token)
 
+
 # ============================================================================
 # UI Actions
 # ============================================================================
+
 
 func _on_buy_button_pressed(sku):
 	if iap and iap.isReady():
@@ -149,6 +163,7 @@ func _on_buy_button_pressed(sku):
 	else:
 		print("Billing not ready")
 
+
 func _on_restore_button_pressed():
 	# iOS requires a "Restore Purchases" button
 	# Android will just query existing purchases
@@ -158,14 +173,17 @@ func _on_restore_button_pressed():
 	else:
 		print("Billing not ready")
 
+
 # ============================================================================
 # Game Logic (implement these for your game)
 # ============================================================================
+
 
 func _store_product_info(product):
 	# Store product info to display in your shop
 	# e.g., update button labels with prices
 	pass
+
 
 func _grant_coins(amount):
 	# Add coins to player's account
@@ -173,11 +191,13 @@ func _grant_coins(amount):
 	# SaveData.coins += amount
 	# SaveData.save()
 
+
 func _unlock_premium():
 	# Unlock premium features
 	print("Premium unlocked")
 	# SaveData.is_premium = true
 	# SaveData.save()
+
 
 func _activate_subscription():
 	# Activate subscription benefits
