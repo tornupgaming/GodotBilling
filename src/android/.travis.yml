@@ -1,0 +1,20 @@
+language: android
+
+dist: trusty
+android:
+  components:
+    - build-tools-29.0.3
+    - android-29
+
+before_cache:
+  - rm -f  $HOME/.gradle/caches/modules-2/modules-2.lock
+  - rm -fr $HOME/.gradle/caches/*/plugin-resolution/
+
+cache:
+  directories:
+    - $HOME/.gradle/caches/
+    - $HOME/.gradle/wrapper/
+
+script:
+  - wget -P ./godot-google-play-billing/libs https://github.com/godotengine/godot/releases/download/4.3-stable/godot-lib.4.3.stable.template_release.aar
+  - ./gradlew build -s

@@ -57,15 +57,16 @@ if env['target_name'] == '':
 
 # Enable Obj-C modules
 env.Append(CCFLAGS=["-fmodules", "-fcxx-modules"])
+xcframework_directory = ''
 
 if env['simulator']:
     sdk_name = 'iphonesimulator'
-    env.Append(CCFLAGS=['-mios-simulator-version-min=10.0'])
-    env.Append(LINKFLAGS=["-mios-simulator-version-min=10.0"])
+    env.Append(CCFLAGS=['-mios-simulator-version-min=15.0'])
+    env.Append(LINKFLAGS=["-mios-simulator-version-min=15.0"])
 else:
     sdk_name = 'iphoneos'
-    env.Append(CCFLAGS=['-miphoneos-version-min=10.0'])
-    env.Append(LINKFLAGS=["-miphoneos-version-min=10.0"])
+    env.Append(CCFLAGS=['-miphoneos-version-min=15.0'])
+    env.Append(LINKFLAGS=["-miphoneos-version-min=15.0"])
 
 try:
     sdk_path = decode_utf8(subprocess.check_output(['xcrun', '--sdk', sdk_name, '--show-sdk-path']).strip())
@@ -153,18 +154,9 @@ else:
 
 # Adding header files
 env.Append(CPPPATH=[
-    '.', 
-    'godot', 
-    'godot/main', 
-    'godot/core', 
-    'godot/core/os', 
-    'godot/core/platform',
-    'godot/platform/iphone',
-    'godot/modules',
-    'godot/scene',
-    'godot/servers',
-    'godot/drivers',
-    'godot/thirdparty',
+    '.',
+    'godot',
+    'godot/platform/ios',
 ])
 
 # tweak this if you want to use different folders, or more folders, to store your source code in.
