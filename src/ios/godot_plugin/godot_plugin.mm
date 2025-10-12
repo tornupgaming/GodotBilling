@@ -10,13 +10,11 @@
 
 #import "godot_plugin.h"
 #import "haptics_plugin.h"
-#import "billing_plugin.h"
 #import "godot_iap.h"
 
 #import "core/config/engine.h"
 
 HapticsPlugin *hapticsPlugin;
-GodotIOSBilling *billingPlugin;
 GodotIAP *iapPlugin;
 
 void godot_plugin_init() {
