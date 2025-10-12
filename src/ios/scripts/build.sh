@@ -1,6 +1,6 @@
 
 ARCH="arm64"
-TARGET="tug_plugin"
+TARGET="godot_billing"
 
 rm -rf ./bin/*.a
 
