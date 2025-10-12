@@ -722,9 +722,141 @@ Old signals still work for backward compatibility but will be removed in a futur
 
 ---
 
+## Strongly-Typed Data Classes
+
+For better type safety and autocomplete support, use the provided `BillingTypes` classes:
+
+### Using Typed Results
+
+```gdscript
+# Instead of raw Dictionary:
+func _on_purchase_updated(result_dict: Dictionary) -> void:
+	if result_dict.status == 0:
+		for purchase_dict in result_dict.purchases:
+			print(purchase_dict.sku)  # No autocomplete!
+
+# Use typed classes:
+func _on_purchase_updated(result_dict: Dictionary) -> void:
+	var result := BillingTypes.PurchaseResult.from_dict(result_dict)
+
+	if result.is_success():
+		for purchase in result.purchases:
+			print(purchase.sku)        # Full autocomplete!
+			print(purchase.order_id)   # Type-safe!
+			print(purchase.needs_acknowledgement())
+```
+
+### Available Types
+
+#### `BillingTypes.Status` (Enum)
+```gdscript
+enum Status {
+	OK = 0,
+	USER_CANCELLED = 1,
+	BILLING_UNAVAILABLE = 3,
+	DEVELOPER_ERROR = 5,
+	ERROR = 6,
+	ITEM_NOT_OWNED = 8,
+}
+```
+
+#### `BillingTypes.Product`
+```gdscript
+var product := BillingTypes.Product.from_dict(product_dict)
+print(product.title)              # String
+print(product.price)              # String: "$0.99"
+print(product.get_price_value())  # float: 0.99
+print(product.is_subscription())  # bool
+print(product.is_inapp())         # bool
+```
+
+#### `BillingTypes.Purchase`
+```gdscript
+var purchase := BillingTypes.Purchase.from_dict(purchase_dict)
+print(purchase.sku)                      # String
+print(purchase.purchase_token)           # String
+print(purchase.get_purchase_datetime())  # Dictionary
+print(purchase.is_completed())           # bool
+print(purchase.needs_acknowledgement())  # bool
+```
+
+#### Result Types
+- `ConnectionResult` - from `billing_connected`
+- `ProductQueryResult` - from `sku_details_query_completed`
+- `PurchaseResult` - from `purchase_updated`, `purchases_updated`, `purchases_restored`
+- `AcknowledgementResult` - from `purchase_acknowledged`
+- `ConsumptionResult` - from `purchase_consumed`
+
+### Type-Safe Example
+
+```gdscript
+func _on_sku_details_completed(result_dict: Dictionary) -> void:
+	var result := BillingTypes.ProductQueryResult.from_dict(result_dict)
+
+	if not result.is_success():
+		print("Query failed: ", result.get_error())
+		return
+
+	# Type-safe product access
+	for product in result.products:
+		# Full autocomplete on all properties!
+		print("%s - %s (%.2f)" % [
+			product.title,
+			product.price,
+			product.get_price_value()
+		])
+
+	# Get specific product
+	var coins_product := result.get_product("coins_100")
+	if coins_product:
+		print("Found coins product: ", coins_product.title)
+
+	# Check invalid SKUs
+	if result.invalid_skus.size() > 0:
+		print("Invalid: ", result.invalid_skus)
+```
+
+### Advanced Typed Usage
+
+```gdscript
+# Store products in catalog
+var product_catalog: Dictionary = {}  # String -> BillingTypes.Product
+
+func _on_sku_details_completed(result_dict: Dictionary) -> void:
+	var result := BillingTypes.ProductQueryResult.from_dict(result_dict)
+
+	for product in result.products:
+		product_catalog[product.sku] = product
+
+# Type-safe product lookup
+func get_product(sku: String) -> BillingTypes.Product:
+	return product_catalog.get(sku) as BillingTypes.Product
+
+# Type-safe purchase handling
+func handle_purchase(purchase: BillingTypes.Purchase) -> void:
+	var product := get_product(purchase.sku)
+	if not product:
+		return
+
+	if product.is_subscription():
+		activate_subscription()
+	elif product.sku.begins_with("coins_"):
+		grant_coins()
+	else:
+		unlock_feature()
+```
+
+See [example_typed_usage.gd](example_typed_usage.gd) for a complete typed implementation example.
+
+---
+
 ## Examples
 
-See [UNIFIED_IAP_DESIGN.md](UNIFIED_IAP_DESIGN.md) for additional implementation examples and design notes.
+- [billing_types.gd](billing_types.gd) - Strongly-typed data classes
+- [example_typed_usage.gd](example_typed_usage.gd) - Complete typed implementation example
+- [example_usage_with_mock.gd](example_usage_with_mock.gd) - Integration with MockGodotBilling
+- [UNIFIED_IAP_DESIGN.md](UNIFIED_IAP_DESIGN.md) - Design philosophy and additional examples
+- [MOCK_BILLING_GUIDE.md](MOCK_BILLING_GUIDE.md) - Testing guide for MockGodotBilling
 
 ---
 
