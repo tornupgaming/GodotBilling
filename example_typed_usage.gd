@@ -16,7 +16,7 @@ func _ready():
 		add_child(billing)
 	else:
 		if OS.get_name() == "iOS":
-			billing = Engine.get_singleton("GodotIAP")
+			billing = Engine.get_singleton("GodotBilling")
 		else:
 			billing = Engine.get_singleton("GodotBilling")
 

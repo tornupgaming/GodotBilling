@@ -19,7 +19,7 @@ func _ready():
     else:
         # Device - use real plugin
         if OS.get_name() == "iOS":
-            billing = Engine.get_singleton("GodotIAP")
+            billing = Engine.get_singleton("GodotBilling")
         else:
             billing = Engine.get_singleton("GodotBilling")
 

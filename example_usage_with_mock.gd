@@ -43,7 +43,7 @@ func _setup_mock_billing() -> void:
 func _setup_real_billing() -> void:
 	# Get platform-specific plugin
 	if OS.get_name() == "iOS":
-		billing = Engine.get_singleton("GodotIAP")
+		billing = Engine.get_singleton("GodotBilling")
 	elif OS.get_name() == "Android":
 		billing = Engine.get_singleton("GodotBilling")
 	else:

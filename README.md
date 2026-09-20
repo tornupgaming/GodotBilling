@@ -24,17 +24,22 @@ A unified in-app purchase (IAP) plugin for Godot Engine that provides a consiste
 
 ### 1. Installation
 
+Build the binaries first (see [Building](#building)), then copy them into the Godot project.
+
 #### iOS
+```bash
+# <project> is the folder containing project.godot
+cp bin/ios/plugins/godot_billing.debug.a bin/ios/plugins/godot_billing.release.a \
+   bin/ios/plugins/godot_billing.gdip <project>/ios/plugins/
 ```
-# Copy plugin files to your Godot project
-cp -r src/ios/godot_plugin/ res://ios/plugins/GodotIAP/
-```
+Enable `GodotBilling` under Plugins in the iOS export preset. The library also registers a
+`Haptics` singleton. It is an arm64 device build; there is no simulator slice.
 
 #### Android
+```bash
+cp bin/android/plugins/*.aar bin/android/plugins/godot_billing.gdap <project>/android/plugins/
 ```
-# Add plugin to your Android export template
-# See Android plugin documentation for details
-```
+Enable `GodotGooglePlayBilling` under Plugins in the Android export preset (Gradle build required).
 
 ### 2. Basic Setup
 
@@ -44,11 +49,8 @@ extends Node
 var billing  # GodotBilling singleton
 
 func _ready():
-	# Get the billing plugin (name differs by platform)
-	if OS.get_name() == "iOS":
-		billing = Engine.get_singleton("GodotIAP")
-	else:  # Android
-		billing = Engine.get_singleton("GodotBilling")
+	# The singleton is called "GodotBilling" on both platforms
+	billing = Engine.get_singleton("GodotBilling")
 
 	# Connect to signals
 	billing.billing_connected.connect(_on_billing_connected)
@@ -186,7 +188,10 @@ func _on_purchase_acknowledged(result: Dictionary):
 
 ```gdscript
 func subscribe_monthly():
-	var result = billing.purchase("premium_monthly", "subs")
+	if billing.getPlatform() == "ios":
+		billing.purchase("premium_monthly", "subs")
+		return
+	var result = billing.purchaseWithType("premium_monthly", "subs")
 	if result.status != 0:
 		show_error("Subscription failed to start")
 
@@ -314,22 +319,29 @@ billing.querySkuDetails(["premium_monthly"], "subs")
 
 #### Purchasing
 
-##### `purchase(sku: String) -> Dictionary`
-##### `purchase(sku: String, type: String) -> Dictionary`
-Initiate a purchase flow.
+##### Android: `purchase(sku: String) -> Dictionary`
+##### Android: `purchaseWithType(sku: String, type: String) -> Dictionary`
+##### iOS: `purchase(sku: String, type: String) -> void`
+Initiate a purchase flow. The signatures differ per platform: Godot's Android plugin bridge cannot
+expose two Java overloads under one name, and the iOS binding has no default for `type`.
 
 **Parameters:**
 - `sku`: Product ID to purchase
-- `type`: (Optional) `"inapp"` or `"subs"` (iOS only, Android ignores this)
+- `type`: `"inapp"` or `"subs"`. Required on iOS. Android ignores it (the type comes from
+  `querySkuDetails`), so `purchaseWithType` exists only for call-site symmetry.
 
-**Returns:** Dictionary with immediate result `{status: int, error_message: String}`
+**Returns:** Android returns the immediate result `{status: int, error_message: String}`. iOS
+returns nothing; failures arrive through `purchase_updated`.
 
 **Emits:** `purchase_updated` when purchase completes
 
 ```gdscript
-var result = billing.purchase("coins_100")
-if result.status != 0:
-	print("Failed to start purchase: ", result.error_message)
+if billing.getPlatform() == "ios":
+	billing.purchase("coins_100", "inapp")
+else:
+	var result = billing.purchase("coins_100")
+	if result.status != 0:
+		print("Failed to start purchase: ", result.error_message)
 ```
 
 ---
@@ -870,8 +882,41 @@ See [example_typed_usage.gd](example_typed_usage.gd) for a complete typed implem
 
 ---
 
+## Building
+
+Releases are tagged; build from a tag so the binaries can be traced to source.
+
+```bash
+git clone --branch <tag> git@github.com:tornupgaming/GodotBilling.git && cd GodotBilling
+git submodule update --init --depth 1 src/ios/godot   # about 130 MB; without --depth it is 1.6 GB
+sh scripts/build-ios.sh                     # -> bin/ios/plugins/
+sh scripts/build-android.sh                 # -> bin/android/plugins/
+```
+
+`sh scripts/build.sh` runs both.
+
+| | Requirements |
+|---|---|
+| iOS | macOS, Xcode with the iOS SDK, SCons (`pip3 install scons`) |
+| Android | JDK 17 and the Android SDK (platform 34). Set `ANDROID_HOME`, or put `sdk.dir=<path>` in `src/android/local.properties` |
+
+Notes:
+
+- **The iOS libraries must match the game's Godot version.** Godot's C++ ABI changes between minor
+  versions, so a library built against other headers fails to link. The headers come from the
+  `src/ios/godot` submodule, currently `4.7.2-stable`. To target another version, check that tag out
+  in the submodule, rebuild, and commit the new submodule pointer.
+- The iOS build generates the two engine headers it needs and compiles only the plugin; the engine
+  itself is not built. It stops on the first error.
+- Builds are reproducible. The iOS archives are byte-for-byte identical for the same source, Godot
+  tag and Xcode version, and `src/ios/scripts/build.sh` prints their SHA-256 so a consuming project
+  can record and verify them.
+- The Android library compiles against `org.godotengine:godot:4.3.0.stable` from Maven Central. The
+  v2 Android plugin API is stable across Godot 4.x, so it does not track the engine version.
+
+---
+
 ## License
 
-MIT License - See LICENSE file for details
-
-Copyright (c) 2020 Godot Engine contributors
+MIT; see [LICENSE](LICENSE). Parts of the repository derive from other projects and keep their own
+terms; see [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).

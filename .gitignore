@@ -1,1 +1,5 @@
+# Collected build outputs (scripts/build*.sh)
 bin/
+
+.DS_Store
+.claude/
