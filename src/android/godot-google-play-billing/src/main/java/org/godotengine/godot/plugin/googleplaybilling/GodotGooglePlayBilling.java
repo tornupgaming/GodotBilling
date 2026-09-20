@@ -614,7 +614,7 @@ public class GodotGooglePlayBilling extends GodotPlugin implements PurchasesUpda
 	 * <p><b>Emits:</b> "purchase_updated" signal (see purchase(String) for details)
 	 */
 	@UsedByGodot
-	public Dictionary purchase(String sku, String type) {
+	public Dictionary purchaseWithType(String sku, String type) {
 		// Type parameter is ignored on Android as the type is determined by querySkuDetails
 		// Included for iOS compatibility
 		Log.v(LOG_TAG, String.format("purchase(sku: %s, type: %s)", sku, type));
@@ -753,7 +753,7 @@ public class GodotGooglePlayBilling extends GodotPlugin implements PurchasesUpda
 	@NonNull
 	@Override
 	public List<String> getPluginMethods() {
-		return Arrays.asList("startConnection", "endConnection", "isReady", "querySkuDetails", "purchase", "queryPurchases", "restorePurchases", "acknowledgePurchase", "consumePurchase", "setAutoFinishTransactions", "getPlatform", "confirmPriceChange", "updateSubscription", "getConnectionState", "setObfuscatedAccountId", "setObfuscatedProfileId");
+		return Arrays.asList("startConnection", "endConnection", "isReady", "querySkuDetails", "purchase", "purchaseWithType", "queryPurchases", "restorePurchases", "acknowledgePurchase", "consumePurchase", "setAutoFinishTransactions", "getPlatform", "confirmPriceChange", "updateSubscription", "getConnectionState", "setObfuscatedAccountId", "setObfuscatedProfileId");
 	}
 
 	@NonNull
