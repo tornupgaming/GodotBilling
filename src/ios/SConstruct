@@ -18,6 +18,10 @@ opts = Variables([], ARGUMENTS)
 # Gets the standard flags CC, CCX, etc.
 env = DefaultEnvironment()
 
+# Apple's ar/ranlib zero the timestamp, uid and gid of archive members when this is set, which makes
+# the static libraries byte-for-byte reproducible so their checksums can be verified.
+env['ENV']['ZERO_AR_DATE'] = '1'
+
 # Define our options
 opts.Add(EnumVariable('target', "Compilation target", 'debug', ['debug', 'release', "release_debug"]))
 opts.Add(EnumVariable('arch', "Compilation Architecture", '', ['', 'arm64', 'armv7', 'x86_64']))

@@ -1,8 +1,12 @@
+#!/bin/sh
+# Builds the iOS libraries and collects them in bin/ios/plugins/. Requires macOS, Xcode and SCons.
+set -eu
 
-mkdir -p ./bin/ios/plugins
+cd "$(dirname "$0")/.."
 
-cd src/ios
-sh ./scripts/build.sh
+sh src/ios/scripts/build.sh
 
-cp -r ./bin/**.a ../../bin/ios/plugins
-cp ./godot_billing.gdip ../../bin/ios/plugins/godot_billing.gdip
+rm -rf bin/ios/plugins
+mkdir -p bin/ios/plugins
+cp src/ios/bin/*.a bin/ios/plugins/
+cp src/ios/godot_billing.gdip bin/ios/plugins/
