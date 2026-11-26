@@ -11,13 +11,9 @@ You can find the docs for this first-party plugin in the [official Godot docs](h
 
 Prerequisites:
 
-- Android SDK (platform version 30)
-- the Godot Android library (`godot-lib.***.release.aar`) for your version of Godot from the [downloads page](https://godotengine.org/download).
+- JDK 17 (Gradle 8.13 does not run on newer JDKs; point `JAVA_HOME` at it)
+- Android SDK platform 36
 
-Steps to build:
-
-1. Clone this Git repository
-2. Put `godot-lib.***.release.aar` in `./godot-google-play-billing/libs/`
-3. Run `./gradlew build` in the cloned repository
-
-If the build succeeds, you can find the resulting `.aar` files in `./godot-google-play-billing/build/outputs/aar/`.
+Run `./gradlew assemble` here. Gradle downloads the Godot library and Play Billing from Maven.
+The `.aar` files land in `./godot-google-play-billing/build/outputs/aar/`. Copy the release
+`.aar` and `godot_billing.gdap` into the game's `android/plugins/` folder.

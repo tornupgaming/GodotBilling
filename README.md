@@ -8,7 +8,6 @@ A unified in-app purchase (IAP) plugin for Godot Engine that provides a consiste
 - ✅ **Signal-Based** - Async operations using Godot signals
 - ✅ **Type-Safe** - Dictionary-based responses with consistent structure
 - ✅ **Well-Documented** - Comprehensive docs and examples
-- ✅ **Backward Compatible** - Old signal names still work during migration
 - ✅ **Production Ready** - Used in live games on both platforms
 
 ## Platform Support
@@ -16,7 +15,7 @@ A unified in-app purchase (IAP) plugin for Godot Engine that provides a consiste
 | Platform | Implementation | API Version |
 |----------|---------------|-------------|
 | **iOS** | StoreKit | iOS 11.2+ |
-| **Android** | Google Play Billing Library | Billing 5.0+ |
+| **Android** | Google Play Billing Library | Billing 9.1, Android 6.0+ (API 23) |
 
 ---
 
@@ -352,7 +351,7 @@ Query existing purchases (owned items).
 **Parameters:**
 - `type`: `"inapp"` or `"subs"`
 
-**Emits:** `purchases_updated`
+**Emits:** `purchases_updated` on iOS, `query_purchases_response` on Android (same Dictionary)
 
 ```gdscript
 billing.queryPurchases("inapp")
@@ -686,7 +685,8 @@ If you're using the old signal names, here's the mapping:
 | `purchase_acknowledged` (string param) | `purchase_acknowledged` (Dictionary) |
 | `purchase_consumed` (string param) | `purchase_consumed` (Dictionary) |
 
-Old signals still work for backward compatibility but will be removed in a future version.
+The Android plugin removed the old signals in 2.0.0. It still emits `purchase_error`,
+`sku_details_query_error` and `query_purchases_response` alongside the unified signals.
 
 ---
 

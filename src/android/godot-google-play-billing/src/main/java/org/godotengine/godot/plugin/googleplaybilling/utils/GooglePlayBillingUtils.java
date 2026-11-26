@@ -1,5 +1,5 @@
 /*************************************************************************/
-/*  GooglePlayBillingUtils.java                                                    */
+/*  GooglePlayBillingUtils.java                                          */
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
@@ -30,76 +30,60 @@
 
 package org.godotengine.godot.plugin.googleplaybilling.utils;
 
-import android.nfc.tech.Ndef;
-
 import org.godotengine.godot.Dictionary;
 
+import com.android.billingclient.api.ProductDetails;
 import com.android.billingclient.api.Purchase;
-import com.android.billingclient.api.SkuDetails;
 
-import java.util.ArrayList;
 import java.util.List;
 
+/** Converts Play Billing objects into the Dictionaries the unified GodotBilling signals carry. */
 public class GooglePlayBillingUtils {
-	public static Dictionary convertPurchaseToDictionary(Purchase purchase) {
+	private static Dictionary purchaseToDictionary(Purchase purchase) {
+		List<String> productIds = purchase.getProducts();
 		Dictionary dictionary = new Dictionary();
-		dictionary.put("original_json", purchase.getOriginalJson());
-		dictionary.put("order_id", purchase.getOrderId());
+		dictionary.put("original_json", orEmpty(purchase.getOriginalJson()));
+		// Pending purchases have no order ID yet, and the game's String fields cannot hold null.
+		dictionary.put("order_id", orEmpty(purchase.getOrderId()));
 		dictionary.put("package_name", purchase.getPackageName());
 		dictionary.put("purchase_state", purchase.getPurchaseState());
 		dictionary.put("purchase_time", purchase.getPurchaseTime());
 		dictionary.put("purchase_token", purchase.getPurchaseToken());
 		dictionary.put("quantity", purchase.getQuantity());
-		dictionary.put("signature", purchase.getSignature());
-		// PBL V4 replaced getSku with getSkus to support multi-sku purchases,
-		// use the first entry for "sku" and generate an array for "skus"
-		ArrayList<String> skus = purchase.getSkus();
-		dictionary.put("sku", skus.get(0));
-		String[] skusArray = skus.toArray(new String[0]);
-		dictionary.put("skus", skusArray);
-		dictionary.put("is_acknowledged", purchase.isAcknowledged());
+		dictionary.put("signature", orEmpty(purchase.getSignature()));
+		dictionary.put("sku", productIds.isEmpty() ? "" : productIds.get(0));
+		dictionary.put("skus", productIds.toArray(new String[0]));
+		dictionary.put("acknowledged", purchase.isAcknowledged());
 		dictionary.put("is_auto_renewing", purchase.isAutoRenewing());
 		return dictionary;
 	}
 
-	public static Dictionary convertSkuDetailsToDictionary(SkuDetails details) {
+	public static Object[] purchasesToArray(List<Purchase> purchases) {
+		Object[] dictionaries = new Object[purchases.size()];
+		for (int i = 0; i < purchases.size(); i++) {
+			dictionaries[i] = purchaseToDictionary(purchases.get(i));
+		}
+		return dictionaries;
+	}
+
+	// Subscriptions carry no single price, so their price keys are left out.
+	public static Dictionary productDetailsToDictionary(ProductDetails details) {
 		Dictionary dictionary = new Dictionary();
-		dictionary.put("sku", details.getSku());
-		dictionary.put("title", details.getTitle());
+		dictionary.put("sku", details.getProductId());
+		// getName() is the store title without the " (App name)" suffix that getTitle() adds.
+		dictionary.put("title", details.getName());
 		dictionary.put("description", details.getDescription());
-		dictionary.put("price", details.getPrice());
-		dictionary.put("price_currency_code", details.getPriceCurrencyCode());
-		dictionary.put("price_amount_micros", details.getPriceAmountMicros());
-		dictionary.put("free_trial_period", details.getFreeTrialPeriod());
-		dictionary.put("icon_url", details.getIconUrl());
-		dictionary.put("introductory_price", details.getIntroductoryPrice());
-		dictionary.put("introductory_price_amount_micros", details.getIntroductoryPriceAmountMicros());
-		dictionary.put("introductory_price_cycles", details.getIntroductoryPriceCycles());
-		dictionary.put("introductory_price_period", details.getIntroductoryPricePeriod());
-		dictionary.put("original_price", details.getOriginalPrice());
-		dictionary.put("original_price_amount_micros", details.getOriginalPriceAmountMicros());
-		dictionary.put("subscription_period", details.getSubscriptionPeriod());
-		dictionary.put("type", details.getType());
+		dictionary.put("type", details.getProductType());
+		ProductDetails.OneTimePurchaseOfferDetails offer = details.getOneTimePurchaseOfferDetails();
+		if (offer != null) {
+			dictionary.put("price", offer.getFormattedPrice());
+			dictionary.put("price_currency_code", offer.getPriceCurrencyCode());
+			dictionary.put("price_amount_micros", offer.getPriceAmountMicros());
+		}
 		return dictionary;
 	}
 
-	public static Object[] convertPurchaseListToDictionaryObjectArray(List<Purchase> purchases) {
-		Object[] purchaseDictionaries = new Object[purchases.size()];
-
-		for (int i = 0; i < purchases.size(); i++) {
-			purchaseDictionaries[i] = GooglePlayBillingUtils.convertPurchaseToDictionary(purchases.get(i));
-		}
-
-		return purchaseDictionaries;
-	}
-
-	public static Object[] convertSkuDetailsListToDictionaryObjectArray(List<SkuDetails> skuDetails) {
-		Object[] skuDetailsDictionaries = new Object[skuDetails.size()];
-
-		for (int i = 0; i < skuDetails.size(); i++) {
-			skuDetailsDictionaries[i] = GooglePlayBillingUtils.convertSkuDetailsToDictionary(skuDetails.get(i));
-		}
-
-		return skuDetailsDictionaries;
+	private static String orEmpty(String value) {
+		return value != null ? value : "";
 	}
 }

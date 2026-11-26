@@ -32,14 +32,14 @@ signal sku_details_query_completed(result: Dictionary)  # {status: int, products
 
 # Purchases
 signal purchase_updated(result: Dictionary)  # {status: int, purchases: Array}
-signal purchases_updated(result: Dictionary)  # {status: int, purchases: Array}
+signal purchases_updated(result: Dictionary)  # {status: int, purchases: Array}; Android emits query_purchases_response
 signal purchases_restored(result: Dictionary)  # {status: int, purchases: Array}
 
 # Post-purchase
 signal purchase_acknowledged(result: Dictionary)  # {status: int, purchase_token: String}
 signal purchase_consumed(result: Dictionary)  # {status: int, purchase_token: String}
 
-# Errors
+# Errors (iOS only)
 signal billing_error(error: Dictionary)  # {code: int, message: String}
 ```
 
@@ -109,7 +109,7 @@ func _on_purchase_updated(result):
 ```gdscript
 # Same as non-consumable, but use type "subs"
 iap.querySkuDetails(["premium_monthly"], "subs")
-iap.purchase("premium_monthly", "subs")
+iap.purchase("premium_monthly", "subs")  # Android: iap.purchase("premium_monthly")
 iap.acknowledgePurchase(purchase_token)  # After verification
 ```
 
